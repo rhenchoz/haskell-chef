@@ -1,5 +1,47 @@
 module Library where
 import PdePreludat
 
-doble :: Number -> Number
-doble numero = numero + numero
+-- Tipeo y data
+type Truco = Plato -> Plato 
+type Ingredientes = String
+type Peso = Number
+type Componente = (Ingredientes, Peso)
+
+data Plato = Plato{
+    dificultad :: Number,
+    componentes :: [Componente]
+} deriving (Eq, Show)
+
+data Personaje = Personaje { 
+    nombre :: String,
+    trucos :: [Truco],
+    platoEspecialidad :: Plato
+} deriving (Show)
+
+-- Trucos mas famosos
+
+crearComponente :: String -> Number -> Componente 
+crearComponente nombreIngrediente cantidad = (nombreIngrediente,cantidad)
+
+agregarComponente :: Plato -> Componente -> Plato
+agregarComponente unPlato unComponente = unPlato{componentes = unComponente : componentes unPlato}
+
+endulzar :: Number -> Plato -> Plato
+endulzar cantidadAzucar unPlato = agregarComponente unPlato (crearComponente "Azucar" cantidadAzucar)
+
+salar :: Number -> Plato -> Plato
+salar cantidadSal unPlato = agregarComponente unPlato (crearComponente "Sal" cantidadSal)
+
+darSabor :: Number -> Number -> Plato -> Plato
+darSabor cantAzucar cantSal unPlato = salar cantSal (endulzar cantAzucar unPlato)
+
+duplicarPorcion :: Plato -> Plato
+duplicarPorcion unPlato = unPlato{componentes = map (\(ingrediente, peso) -> (ingrediente, peso*2)) (componentes unPlato)}
+
+esComplejo :: Plato -> Bool 
+esComplejo unPlato = dificultad unPlato > 7 && length (componentes unPlato) > 5
+
+simplificar :: Plato -> Plato
+simplificar unPlato 
+    |esComplejo unPlato = unPlato{dificultad = 5, componentes= filter (\(ingrediente,peso) -> peso>10) (componentes unPlato)}
+    |otherwise = unPlato

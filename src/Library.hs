@@ -19,7 +19,8 @@ data Participante = Participante {
 } deriving (Show)
 
 
--- Funciones utiles para trabajar con platos y componentes
+-- Funciones que trabajan con platos y componentes
+
 crearComponente :: String -> Number -> Componente 
 crearComponente nombreIngrediente cantidad = (nombreIngrediente,cantidad)
 
@@ -36,15 +37,9 @@ platoContiene :: Plato -> String -> Bool
 platoContiene unPlato unIngrediente =  any (\(ingrediente,peso) -> ingrediente == unIngrediente) (componentes unPlato) 
 
 esComplejo :: Plato -> Bool 
-esComplejo unPlato = dificultad unPlato > 7 && cantidadComponentes unPlato > 5
+esComplejo unPlato = dificultad unPlato > 7 && cantidadComponentes unPlato > 5 
 
-obtenerPeso :: Componente -> Number 
-obtenerPeso (_, peso) = peso 
-
-
--- Trucos mas famosos
-
-sacarComponente :: Plato -> String -> [Componente]
+sacarComponente :: Plato -> String -> [Componente] --saca componente de una lista
 sacarComponente unPlato nombreIngrediente =  filter(\(ingrediente,peso) -> ingrediente /= nombreIngrediente) (componentes unPlato)
 
 agregarPesoComponente :: Componente -> Number -> Componente
@@ -53,6 +48,14 @@ agregarPesoComponente (ingrediente,peso) pesoAgregado = (ingrediente,peso+pesoAg
 --Esta funcion modifica el peso de un solo componente, que esta dentro de una lista de componentes
 modificarPesoLista :: Plato -> String -> Number -> Plato
 modificarPesoLista unPlato unIngrediente cantidadAgregada = unPlato{componentes = (agregarPesoComponente (obtenerComponente unPlato unIngrediente) cantidadAgregada) : (sacarComponente unPlato unIngrediente)} 
+
+obtenerPeso :: Componente -> Number 
+obtenerPeso (_, peso) = peso  
+
+
+-- Trucos mas famosos
+
+
 
 endulzar :: Number -> Plato -> Plato
 endulzar cantidadAzucar unPlato 
@@ -114,6 +117,43 @@ platoDePepe = Plato 8 [papa, harina, leche, pimienta, cebolla, sal]
 pepeDaSabor unPlato = darSabor 2 5 unPlato
 pepeSimplifica unPlato = simplificar unPlato
 pepeDuplica unPlato = duplicarPorcion unPlato
+
 trucosDePepe :: [Truco] 
 trucosDePepe = [pepeDaSabor, pepeSimplifica, pepeDuplica]
-pepe = Participante "Pepe" trucosDePepe platoDePepe
+pepe = Participante "Pepe" trucosDePepe platoDePepe 
+
+
+
+-- Parte C
+cocinar :: Participante -> Plato
+cocinar unParticipante = foldr ($) (platoEspecialidad unParticipante) (trucos unParticipante) 
+
+listaDePesos :: [Componente] -> [Number]
+listaDePesos listaComponente = map (obtenerPeso) (listaComponente)
+
+esMejorQue :: Plato -> Plato -> Plato
+esMejorQue unPlato otroPlato
+    |dificultad unPlato > dificultad otroPlato && (foldl1 (+) (listaDePesos (componentes unPlato))) < (foldl1 (+) (listaDePesos(componentes otroPlato))) = unPlato
+    | dificultad unPlato < dificultad otroPlato && (foldl1 (+) (listaDePesos (componentes unPlato))) > (foldl1 (+) (listaDePesos(componentes otroPlato))) = otroPlato
+    |otherwise = unPlato
+
+obtenerParticipante :: [Participante] -> Plato -> Participante
+obtenerParticipante participantes unPlato = head(filter (\participante -> cocinar participante == unPlato) (participantes))
+
+mejorPlato :: [Participante] -> Plato
+mejorPlato participantes = foldl1 (esMejorQue) (map (cocinar) participantes)
+
+participanteEstrella :: [Participante] -> Participante
+participanteEstrella participantes = obtenerParticipante participantes (mejorPlato participantes) 
+
+
+--Platos y participantes de prueba
+platoDeLuz :: Plato
+luz :: Participante
+platoDeLuz = Plato 9 [("Trufa", 5), ("Azafran", 3), ("Aceite", 2)]
+luz = Participante "Luz" [] platoDeLuz
+
+platoDeJuan::Plato
+juan :: Participante
+platoDeJuan = Plato 2 [("Papa", 5000), ("Agua", 3000)]
+juan = Participante "Juan" [] platoDeJuan
